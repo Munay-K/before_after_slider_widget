@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Comparador Antes / Después</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f5f5f5;
+    }
+
+    .comparison-container {
+      position: relative;
+      /* Ancho responsivo: ocupa el 100% del espacio disponible pero con un máximo
+         (ajusta el max-width si quieres más grande en PC) */
+      width: min(100vw, 480px);
+      /* Aspect ratio pensado para tus imágenes verticales 3157x4941 */
+      aspect-ratio: 3157 / 4941;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      background: #000;
+      margin: 0 auto;
+      touch-action: none; /* mejora comportamiento táctil */
+    }
+
+    .comparison-container img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* Capa superior (en este caso: ANTES, para que quede a la izquierda) */
+    .comparison-overlay {
+      position: absolute;
+      inset: 0;
+      width: 50%; /* punto inicial en el medio */
+      overflow: hidden;
+    }
+
+    /* Barra que se arrastra */
+    .slider-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: #ffffff;
+      border-left: 1px solid rgba(0,0,0,0.5);
+      border-right: 1px solid rgba(0,0,0,0.5);
+      left: 50%;
+      transform: translateX(-50%);
+      cursor: ew-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Circulito en el centro de la barra */
+    .slider-handle::before {
+      content: "";
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      background: rgba(0,0,0,0.4);
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
+    }
+
+    .slider-handle::after {
+      content: "↔";
+      position: absolute;
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    /* Etiquetas "Antes / Después" */
+    .label {
+      position: absolute;
+      top: 10px;
+      padding: 4px 10px;
+      font-size: 12px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+      z-index: 10;
+    }
+
+    .label-before {
+      left: 10px;
+    }
+
+    .label-after {
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="comparison-container" id="comparison">
+    <!-- IMPORTANTE: imagen de fondo = DESPUÉS (derecha) -->
+    <img src="after_last_message.webp" alt="Después">
+
+    <!-- Capa de arriba: ANTES (izquierda) -->
+    <div class="comparison-overlay">
+      <img src="before_last_message.webp" alt="Antes">
+    </div>
+
+    <div class="slider-handle"></div>
+
+    <div class="label label-before">ANTES</div>
+    <div class="label label-after">DESPUÉS</div>
+  </div>
+
+  <script>
+    (function () {
+      const container = document.getElementById("comparison");
+      const overlay   = container.querySelector(".comparison-overlay");
+      const handle    = container.querySelector(".slider-handle");
+
+      let dragging = false;
+
+      function setPosition(clientX) {
+        const rect = container.getBoundingClientRect();
+        let offsetX = clientX - rect.left;
+
+        // Limitar dentro del contenedor
+        if (offsetX < 0) offsetX = 0;
+        if (offsetX > rect.width) offsetX = rect.width;
+
+        const percent = (offsetX / rect.width) * 100;
+        overlay.style.width = percent + "%";
+        handle.style.left   = percent + "%";
+      }
+
+      // Eventos de mouse
+      handle.addEventListener("mousedown", (e) => {
+        dragging = true;
+        e.preventDefault();
+      });
+
+      window.addEventListener("mouseup", () => {
+        dragging = false;
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        setPosition(e.clientX);
+      });
+
+      // Eventos táctiles (móvil)
+      handle.addEventListener("touchstart", (e) => {
+        dragging = true;
+        e.preventDefault();
+      }, { passive: false });
+
+      window.addEventListener("touchend", () => {
+        dragging = false;
+      });
+
+      window.addEventListener("touchmove", (e) => {
+        if (!dragging) return;
+        const touch = e.touches[0];
+        setPosition(touch.clientX);
+      }, { passive: false });
+
+      // Permitir click directo en cualquier parte del contenedor
+      container.addEventListener("click", (e) => {
+        setPosition(e.clientX);
+      });
+    })();
+  </script>
+
+</body>
+</html>
